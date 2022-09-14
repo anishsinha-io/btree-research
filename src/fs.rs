@@ -27,3 +27,13 @@ pub fn read_bytes(abs_path: &str, buffer: &mut [u8; 512], offset: u64) -> () {
         .unwrap();
     file.read_at(offset, buffer).unwrap();
 }
+
+pub fn truncate(abs_path: &str) {
+    let path = std::path::Path::new(abs_path);
+    let file = std::fs::OpenOptions::new()
+        .write(true)
+        .create(false)
+        .truncate(true)
+        .open(path)
+        .unwrap();
+}

@@ -18,7 +18,7 @@ impl Display for NodePtr {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Node {
-    pub order: u32,
+    pub min_order: u32,
     pub num_keys: u32,
     pub leaf: bool,
     pub loc: NodePtr,
@@ -31,7 +31,7 @@ pub struct Node {
 impl Display for Node {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Node [order={} num_keys={} leaf={} loc={} link={} keys={:#?} high_key={} children={:#?}]",
-               self.order, self.num_keys, self.leaf, self.loc, self.link, self.keys, self.high_key, self.children)
+               self.min_order, self.num_keys, self.leaf, self.loc, self.link, self.keys, self.high_key, self.children)
     }
 }
 
@@ -39,7 +39,7 @@ impl Node {
     pub fn new(order: u32, loc: NodePtr, link: NodePtr, keys: Vec<usize>, children: Option<Vec<NodePtr>>) -> Self {
         let high_key = *keys.iter().max().unwrap();
         Node {
-            order,
+            min_order: order,
             loc,
             link,
             num_keys: 0,
