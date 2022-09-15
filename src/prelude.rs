@@ -1,10 +1,11 @@
-use crate::{header::IndexHeader, node::{Node, NodePtr}, fs, INDEX_PATH};
+use crate::{header::IndexHeader, node::{Node, ItemPtr}, fs, INDEX_PATH};
 
 // setup index
 pub fn fmt_index() {
     fs::truncate(INDEX_PATH);
-    let header = IndexHeader::new(2);
-    let root = Node::new(2, NodePtr { page_no: 1 }, NodePtr { page_no: -1 }, vec![], None);
+    let mut header = IndexHeader::new(2);
+    header.root_loc = ItemPtr { page_no: 0 };
+    let root = Node::new(2, ItemPtr { page_no: 1 }, ItemPtr { page_no: -1 }, vec![], None);
     header.write();
     root.write();
     println!("Formatted index");

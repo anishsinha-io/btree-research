@@ -6,11 +6,11 @@ use crate::fs;
 use crate::INDEX_PATH;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
-pub struct NodePtr {
+pub struct ItemPtr {
     pub page_no: i32,
 }
 
-impl Display for NodePtr {
+impl Display for ItemPtr {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "ItemPtr [page_no={}]", self.page_no)
     }
@@ -21,11 +21,11 @@ pub struct Node {
     pub min_order: u32,
     pub num_keys: u32,
     pub leaf: bool,
-    pub loc: NodePtr,
-    pub link: NodePtr,
+    pub loc: ItemPtr,
+    pub link: ItemPtr,
     pub keys: Vec<usize>,
     pub high_key: usize,
-    pub children: Vec<NodePtr>,
+    pub children: Vec<ItemPtr>,
 }
 
 impl Display for Node {
@@ -36,7 +36,7 @@ impl Display for Node {
 }
 
 impl Node {
-    pub fn new(min_order: u32, loc: NodePtr, link: NodePtr, keys: Vec<usize>, children: Option<Vec<NodePtr>>) -> Self {
+    pub fn new(min_order: u32, loc: ItemPtr, link: ItemPtr, keys: Vec<usize>, children: Option<Vec<ItemPtr>>) -> Self {
         let high_key = if keys.len() > 0 { *keys.iter().max().unwrap() } else { 0 };
         Node {
             min_order,

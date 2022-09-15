@@ -1,11 +1,11 @@
 use std::fmt::{Display, Formatter};
 use serde::{Serialize, Deserialize};
-use crate::{bytes, fs, Page, INDEX_PATH, node::NodePtr};
+use crate::{bytes, fs, Page, INDEX_PATH, node::ItemPtr};
 
 #[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub struct IndexHeader {
     pub min_order: u32,
-    pub root_loc: NodePtr,
+    pub root_loc: ItemPtr,
     pub height: i32,
 }
 
@@ -19,7 +19,7 @@ impl IndexHeader {
     pub fn new(min_order: u32) -> Self {
         IndexHeader {
             min_order,
-            root_loc: NodePtr { page_no: -1 },
+            root_loc: ItemPtr { page_no: -1 },
             height: -1,
         }
     }

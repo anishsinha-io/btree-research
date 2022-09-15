@@ -12,7 +12,7 @@ mod search;
 mod prelude;
 
 use std::fs::File;
-use node::NodePtr;
+use node::ItemPtr;
 use node::Node;
 use buffer::GLOBAL_BUFFER_POOL;
 
@@ -22,5 +22,6 @@ type Page = [u8; 512];
 
 fn main() {
     prelude::fmt_index();
+    insert::insert(1, 100);
     prelude::cleanup();
 }

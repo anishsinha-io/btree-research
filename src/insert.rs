@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
-use crate::{node::{Node, NodePtr}, buffer, buffer::GLOBAL_BUFFER_POOL, bytes, fs, header::IndexHeader, table, table::GLOBAL_PAGE_TABLE};
+use crate::{node::{Node, ItemPtr}, buffer, buffer::GLOBAL_BUFFER_POOL, bytes, fs, header::IndexHeader, table, table::GLOBAL_PAGE_TABLE};
 
-fn get_root_loc() -> Option<NodePtr> {
+fn get_root_loc() -> Option<ItemPtr> {
     // get the location of the header in the buffer pool from the page table
     if let Some(val) = table::get(0) {
         // get the location of the header
@@ -21,7 +21,7 @@ fn get_root_loc() -> Option<NodePtr> {
         // get an exclusive lock on the global buffer pool
         if let Ok(mut pages) = GLOBAL_BUFFER_POOL.write() {
             // check to make sure the header isn't here
-            return if let Some(header_page) = pages.get(0) {
+            if let Some(header_page) = pages.get(0) {
                 // if it is, just return the root's location
                 if let Ok(page) = header_page.read() {
                     let header = IndexHeader::from_page(*page);
@@ -44,7 +44,7 @@ fn get_root_loc() -> Option<NodePtr> {
                 }
                 let header = IndexHeader::from_page(header_from_disk);
                 // return the root's location in the buffer pool
-                Some(header.root_loc)
+                return Some(header.root_loc);
             };
         }
         None
@@ -55,9 +55,11 @@ pub fn insert(val: usize, page_no: usize) {
     // initialize stack
     let mut stack: Vec<usize> = vec![];
     // get root's location
+    println!("{}", table::len().unwrap());
     let root_loc = get_root_loc().unwrap();
     // read the root
     let root = Node::read_loc(root_loc.page_no as u64);
+    println!("{}", table::len().unwrap());
 }
 
 pub fn insert_recursive() {}
