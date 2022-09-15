@@ -36,10 +36,10 @@ impl Display for Node {
 }
 
 impl Node {
-    pub fn new(order: u32, loc: NodePtr, link: NodePtr, keys: Vec<usize>, children: Option<Vec<NodePtr>>) -> Self {
-        let high_key = *keys.iter().max().unwrap();
+    pub fn new(min_order: u32, loc: NodePtr, link: NodePtr, keys: Vec<usize>, children: Option<Vec<NodePtr>>) -> Self {
+        let high_key = if keys.len() > 0 { *keys.iter().max().unwrap() } else { 0 };
         Node {
-            min_order: order,
+            min_order,
             loc,
             link,
             num_keys: 0,

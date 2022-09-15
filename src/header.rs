@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use serde::{Serialize, Deserialize};
 use crate::{bytes, fs, Page, INDEX_PATH, node::NodePtr};
 
-#[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub struct IndexHeader {
     pub min_order: u32,
     pub root_loc: NodePtr,
@@ -46,21 +46,12 @@ impl IndexHeader {
 
 
     pub fn write(&self) {
-        let offset: u64 = 512 * self.loc.page_no as u64;
-        fs::write_bytes(INDEX_PATH, self.as_page(), offset);
+        fs::write_bytes(INDEX_PATH, self.as_page(), 0);
     }
 
-    pub fn read(&self) -> Page {
-        let offset: u64 = 512 * self.loc.page_no as u64;
+    pub fn read() -> Page {
         let mut buf = [0u8; 512];
-        fs::read_bytes(INDEX_PATH, &mut buf, offset);
-        buf
-    }
-
-    pub fn read_loc(loc: u64) -> Page {
-        let offset: u64 = loc * 512;
-        let mut buf = [0u8; 512];
-        fs::read_bytes(INDEX_PATH, &mut buf, offset);
+        fs::read_bytes(INDEX_PATH, &mut buf, 0);
         buf
     }
 }

@@ -10,12 +10,12 @@ lazy_static! {
 
 pub fn get(key: usize) -> Option<usize> {
     if let Ok(table) = GLOBAL_PAGE_TABLE.read() {
-        return Some((*table.get(&key).clone()));
+        return Some(*table.get(&key).clone().unwrap());
     }
     None
 }
 
-pub fn set(key: usize, val: usize) {
+pub fn insert(key: usize, val: usize) {
     if let Ok(mut table) = GLOBAL_PAGE_TABLE.write() {
         table.insert(key, val);
     }
