@@ -22,12 +22,14 @@ pub fn read_page(loc: usize) -> Option<Page> {
     if let Ok(pages) = GLOBAL_BUFFER_POOL.read() {
         // acquire a shared lock on the page (this is against Lehman and Yao's algorithm but fits with
         // Lanin and Shasha's more modern approach which guarantees correct behavior.
-        if let Ok(page) = pages.get(loc).unwrap().read() {
-            // return a clone of the page
-            return Some((*page).clone());
-            // shared lock on page is released here
+        if let Some(page) = pages.get(loc) {
+            if let Ok(locked) = page.read() {
+                // return a clone of the page
+                return Some((*locked).clone());
+                // shared lock on page is released here
+            }
+            // shared lock on pool is released here
         }
-        // shared lock on pool is released here
     }
     None
 }
