@@ -5,6 +5,7 @@ mod bytes;
 mod fs;
 mod buffer;
 mod table;
+mod header;
 
 use std::io::{Result, Write};
 use std::fs::File;
