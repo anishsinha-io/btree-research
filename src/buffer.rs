@@ -1,63 +1,70 @@
+use std::fmt::{Display, Formatter};
 use std::sync::{Arc, Mutex, RwLock};
+use serde::{Serialize, Deserialize};
 use lazy_static::lazy_static;
 use crate::Page;
 
-type BufferPool = Arc<RwLock<Vec<Arc<RwLock<Page>>>>>;
+
+#[derive(Debug, Clone)]
+pub struct BufferPoolFrame {
+    pub pins: u32,
+    pub page_no_held: u32,
+    pub dirty: bool,
+    pub page_held: Page,
+}
+
+impl Display for BufferPoolFrame {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BufferPoolFrame [pins={} page_no_held={} dirty={}]", self.pins, self.page_no_held, self.dirty)
+    }
+}
+
+impl BufferPoolFrame {
+    pub fn new(page_no: u32, page: Page) -> Self {
+        BufferPoolFrame {
+            pins: 0,
+            page_no_held: page_no,
+            dirty: false,
+            page_held: page,
+        }
+    }
+}
+
+type BufferPool = Arc<RwLock<Vec<Arc<RwLock<BufferPoolFrame>>>>>;
 
 lazy_static! {
    pub static ref GLOBAL_BUFFER_POOL: BufferPool = Arc::new(RwLock::new(Vec::new()));
 }
 
-pub fn add_page(new_page: Page) {
-    //  acquire an exclusive lock on the pool
+type FrameResult = Result<u32, String>;
+
+pub fn add_frame(page_no: u32, page: Page) -> FrameResult {
+    // acquire write lock on global buffer pool
     if let Ok(mut pages) = GLOBAL_BUFFER_POOL.write() {
-        // push the new page
-        pages.push(Arc::new(RwLock::new(new_page)));
-        // exclusive lock is released here
+        let mut new_frame = BufferPoolFrame::new(page_no, page);
+        new_frame.pins = 1;
+        let size = pages.len();
+        pages.insert(size, Arc::new(RwLock::new(new_frame)));
+        return Ok(page_no);
     }
+    Err("could not add frame to buffer pool".to_string())
 }
 
-pub fn read_page(loc: usize) -> Option<Page> {
-    // acquire a shared lock on the pool
+pub fn drop_frame(page_no: u32) -> FrameResult {
+    if let Ok(mut pages) = GLOBAL_BUFFER_POOL.write() {
+        pages.remove(page_no as usize);
+        return Ok(page_no);
+    }
+    Err("could not remove frame from buffer pool".to_string())
+}
+
+pub fn fetch_frame(page_no: u32) -> Option<BufferPoolFrame> {
     if let Ok(pages) = GLOBAL_BUFFER_POOL.read() {
-        // acquire a shared lock on the page (this is against Lehman and Yao's algorithm but fits with
-        // Lanin and Shasha's more modern approach which guarantees correct behavior.
-        if let Some(page) = pages.get(loc) {
-            if let Ok(locked) = page.read() {
-                // return a clone of the page
+        if let Some(frame) = pages.get(page_no as usize) {
+            if let Ok(locked) = frame.read() {
                 return Some((*locked).clone());
-                // shared lock on page is released here
             }
-            // shared lock on pool is released here
         }
-    }
-    None
-}
-
-pub fn update_page(loc: usize, updated_page: Page) {
-    // acquire a shared lock on the pool
-    if let Ok(pages) = GLOBAL_BUFFER_POOL.read() {
-        // acquire an exclusive lock on the page
-        if let Ok(mut page) = pages.get(loc).unwrap().write() {
-            // update page
-            *page = updated_page;
-            // exclusive lock on page is released here
-        }
-        // exclusive lock on pool is released here
-    }
-}
-
-pub fn drop_page(loc: usize) {
-    // acquire an exclusive lock on the pool
-    if let Ok(mut pages) = GLOBAL_BUFFER_POOL.write() {
-        // remove page
-        pages.remove(loc);
-    }
-}
-
-pub fn size() -> Option<usize> {
-    if let Ok(pages) = GLOBAL_BUFFER_POOL.read() {
-        return Some(pages.len());
     }
     None
 }
